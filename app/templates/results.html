@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credibility Report | {{ app_name }}</title>
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='/css/style.css') }}"
+    >
+</head>
+<body>
+    <header class="navbar">
+        <a class="brand" href="/">🔎 TruthLens <span>AI</span></a>
+        <nav>
+            <a href="/">Analyze</a>
+            <a href="/history">History</a>
+            <a href="/status">System Status</a>
+        </nav>
+    </header>
+
+    <main class="container results-container">
+        <section class="report-header">
+            <span class="eyebrow">CREDIBILITY REVIEW</span>
+            <h1>Analysis report</h1>
+            {% if headline %}
+            <p>{{ headline }}</p>
+            {% else %}
+            <p>Review the findings and evidence limitations below.</p>
+            {% endif %}
+        </section>
+
+        <div class="notice">
+            <strong>Important:</strong>
+            Related search results are candidate sources, not proof.
+            This report does not establish that a claim is true or false.
+        </div>
+
+        <section class="panel">
+            <span class="eyebrow">OVERALL ASSESSMENT</span>
+            <h2>
+                {{ report.overall_assessment.value
+                   | replace("_", " ") | title }}
+            </h2>
+            <p>{{ report.summary }}</p>
+
+            <div class="metrics-grid">
+                <article class="metric-card">
+                    <span>Evidence quality</span>
+                    <strong>
+                        {{ report.evidence_quality.value
+                           | replace("_", " ") | title }}
+                    </strong>
+                </article>
+
+                <article class="metric-card">
+                    <span>Claims reviewed</span>
+                    <strong>{{ report.claims | length }}</strong>
+                </article>
+
+                <article class="metric-card">
+                    <span>Related sources</span>
+                    <strong>
+                        {% set ns = namespace(total=0) %}
+                        {% for claim in report.claims %}
+                            {% set ns.total = ns.total
+                                + (claim.related_sources | length) %}
+                        {% endfor %}
+                        {{ ns.total }}
+                    </strong>
+                </article>
+            </div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">CLAIM-BY-CLAIM REVIEW</span>
+            <h2>Claims analyzed</h2>
+
+            {% if report.claims %}
+                {% for claim in report.claims %}
+                <article class="claim-card">
+                    <div class="claim-heading">
+                        <span class="claim-number">
+                            Claim {{ loop.index }}
+                        </span>
+                        <span class="assessment-label">
+                            {{ claim.assessment.value
+                               | replace("_", " ") | title }}
+                        </span>
+                    </div>
+
+                    <h3>{{ claim.claim }}</h3>
+                    <p>{{ claim.explanation }}</p>
+
+                    {% if claim.missing_evidence %}
+                    <h4>Evidence still needed</h4>
+                    <ul>
+                        {% for item in claim.missing_evidence %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    {% if claim.related_sources %}
+                    <h4>Related web search results</h4>
+                    <p class="muted">
+                        These sources were retrieved by web search.
+                        Their relevance and factual conclusions have not
+                        been independently confirmed.
+                    </p>
+
+                    {% for source in claim.related_sources %}
+                    <article class="source-card">
+                        <h4>{{ source.title }}</h4>
+                        <p class="muted">
+                            {{ source.publisher }}
+                            {% if source.publication_date %}
+                            · {{ source.publication_date }}
+                            {% endif %}
+                        </p>
+                        <p>{{ source.finding }}</p>
+
+                        {% if source.relevance %}
+                        <p class="muted">{{ source.relevance }}</p>
+                        {% endif %}
+
+                        {% if source.url.startswith("https://")
+                              or source.url.startswith("http://") %}
+                        <a
+                            href="{{ source.url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open original source
+                        </a>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                    {% else %}
+                    <p class="muted">
+                        No related search results are available for this
+                        claim.
+                    </p>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            {% else %}
+                <p>No claims could be extracted from the submitted text.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Potential bias indicators</h2>
+            <p>
+                <strong>Level:</strong>
+                {{ report.bias_analysis.level.value
+                   | replace("_", " ") | title }}
+            </p>
+            <p>{{ report.bias_analysis.explanation }}</p>
+
+            {% if report.bias_analysis.indicators %}
+            <ul>
+                {% for item in report.bias_analysis.indicators %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Red flags</h2>
+            {% if report.red_flags %}
+            <ul>
+                {% for flag in report.red_flags %}
+                <li>{{ flag }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No automated red flags were detected. This does not
+                establish that the content is accurate.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Recommended checks</h2>
+            {% if report.recommended_checks %}
+            <ul>
+                {% for item in report.recommended_checks %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>
+                Find the original reporting or research, compare independent
+                sources, and check the date and context of each claim.
+            </p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Limitations</h2>
+            <ul>
+                {% for item in report.limitations %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="panel">
+            <h2>Export report</h2>
+            <p>Save a copy of this report for later review.</p>
+
+            <textarea id="report-json" hidden>{{ report.model_dump_json(indent=2) }}</textarea>
+
+            <div class="form-actions">
+                <button
+                    class="button button-primary"
+                    type="button"
+                    id="copy-report-button"
+                >
+                    Copy report
+                </button>
+
+                <button
+                    class="button button-secondary"
+                    type="button"
+                    id="download-text-button"
+                >
+                    Download TXT
+                </button>
+
+                <button
+                    class="button button-secondary"
+                    type="button"
+                    id="download-json-button"
+                >
+                    Download JSON
+                </button>
+
+                <a class="button button-secondary" href="/history">
+                    View history
+                </a>
+
+                <a class="button button-secondary" href="/">
+                    New analysis
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        TruthLens AI · Review evidence before drawing conclusions.
+    </footer>
+
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+</body>
+</html>

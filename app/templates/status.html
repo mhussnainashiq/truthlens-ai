@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="description"
+        content="View TruthLens AI application status and configuration."
+    >
+    <title>System Status | TruthLens AI</title>
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='/css/style.css') }}"
+    >
+</head>
+<body>
+    <header class="navbar">
+        <a class="brand" href="/">
+            🔎 TruthLens <span>AI</span>
+        </a>
+
+        <nav>
+            <a href="/">Analyze</a>
+            <a href="/history">History</a>
+            <a href="/status">System Status</a>
+        </nav>
+    </header>
+
+    <main class="container results-container">
+        <section class="report-header">
+            <span class="eyebrow">APPLICATION MONITORING</span>
+            <h1>System Status</h1>
+            <p>
+                View the application's current configuration and basic
+                service information.
+            </p>
+        </section>
+
+        <section class="panel">
+            <article class="claim-card">
+                <div class="claim-heading">
+                    <h3>Application</h3>
+                    <span class="assessment-label">Running</span>
+                </div>
+                <p>{{ app_name }} is responding to requests.</p>
+            </article>
+
+            <article class="claim-card">
+                <div class="claim-heading">
+                    <h3>Analysis configuration</h3>
+                    <span class="assessment-label">{{ mode }}</span>
+                </div>
+                <p>
+                    {% if mode == "Demo Mode" %}
+                    Basic text analysis is enabled. Independent fact-checking
+                    and external source verification are not available in
+                    this mode.
+                    {% else %}
+                    An AI API key is configured. This does not guarantee that
+                    the provider is reachable or that a request will succeed.
+                    {% endif %}
+                </p>
+            </article>
+
+            <article class="claim-card">
+                <h3>Database initialization</h3>
+                <p>{{ database_status }}</p>
+                <p class="muted">
+                    The application attempted to initialize the local
+                    database during startup. This label does not test every
+                    database operation.
+                </p>
+            </article>
+
+            <article class="claim-card">
+                <h3>Analysis route</h3>
+                <p>{{ analysis_status }}</p>
+                <p class="muted">
+                    This indicates that the application route is configured,
+                    not that every analysis request will succeed.
+                </p>
+            </article>
+
+            <div class="form-actions">
+                <a class="button button-primary" href="/">
+                    Start an analysis
+                </a>
+
+                <a class="button button-secondary" href="/health">
+                    View health API
+                </a>
+
+                <a class="button button-secondary" href="/docs">
+                    API documentation
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        TruthLens AI · System Status
+    </footer>
+</body>
+</html>

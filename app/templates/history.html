@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History | TruthLens AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a class="brand" href="/">🔎 TruthLens <span>AI</span></a>
+        <nav>
+            <a href="/">Analyze</a>
+            <a href="/history">History</a>
+        </nav>
+    </header>
+
+    <main class="container results-container">
+        <section class="report-header">
+            <span class="eyebrow">YOUR SAVED REPORTS</span>
+            <h1>Analysis history</h1>
+            <p>Review previous analyses saved in this application's local database.</p>
+        </section>
+
+        {% if error %}
+        <div class="error-box" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <section class="panel">
+            {% if records %}
+                {% for record in records %}
+                <article class="claim-card">
+                    <div class="claim-heading">
+                        <span class="claim-number">Report #{{ record.id }}</span>
+                        <span class="assessment-label">
+                            {{ record.assessment | replace("_", " ") | title }}
+                        </span>
+                    </div>
+
+                    <h3>{{ record.headline }}</h3>
+
+                    <p class="muted">
+                        {{ record.content_type | replace("_", " ") | title }}
+                        · {{ record.created_at }}
+                    </p>
+
+                    <div class="form-actions">
+                        <a class="button button-primary"
+                           href="/history/{{ record.id }}">
+                            View report
+                        </a>
+
+                        <form method="post"
+                              action="/history/{{ record.id }}/delete"
+                              onsubmit="return confirm('Delete this saved report?');">
+                            <button class="button button-secondary" type="submit">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <h2>No saved reports yet</h2>
+                <p>Your future analyses will appear here when history saving is enabled.</p>
+                <a class="button button-primary" href="/">Analyze your first claim</a>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer class="footer">TruthLens AI · Your evidence review workspace</footer>
+</body>
+</html>
